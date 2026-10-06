@@ -66,14 +66,14 @@ Phase 8  Polish, tests, next steps
 
 ## Phase 1: React + TypeScript setup
 
-- [ ] 1.1 Learn the picture: browser ↔ React app ↔ API ↔ database. *(a short explanation from me, no code)*
-- [ ] 1.2 Create the project with **Vite** (`react-ts` template) in a `frontend/` folder.
-- [ ] 1.3 Tour of the generated files: `package.json`, `index.html`, `main.tsx`, `App.tsx`. What does each do?
-- [ ] 1.4 Run the dev server and see the page in the browser.
-- [ ] 1.5 Delete the demo content so we have a clean `App.tsx`.
-- [ ] 1.6 Mini TypeScript lesson: `string`, `number`, `boolean`, arrays, `type`. We write a few lines in a scratch file.
-- [ ] 1.7 Mini React lesson: a component is just a function that returns UI (JSX). Write a `<Hello />` component.
-- [ ] 1.8 Props: pass data into a component.
+- [x] 1.1 Learn the picture: browser ↔ React app ↔ API ↔ database. *(a short explanation from me, no code)*
+- [x] 1.2 Create the project with **Vite** (`react-ts` template) in a `frontend/` folder.
+- [x] 1.3 Tour of the generated files: `package.json`, `index.html`, `main.tsx`, `App.tsx`. What does each do?
+- [x] 1.4 Run the dev server and see the page in the browser.
+- [x] 1.5 Delete the demo content so we have a clean `App.tsx`.
+- [x] 1.6 Mini TypeScript lesson: `string`, `number`, `boolean`, arrays, `type`. We write a few lines in a scratch file.
+- [x] 1.7 Mini React lesson: a component is just a function that returns UI (JSX). Write a `<Hello />` component.
+- [x] 1.8 Props: pass data into a component.
 
 **Done when:** you see your own `<Hello name="Jaden" />` on the page.
 
