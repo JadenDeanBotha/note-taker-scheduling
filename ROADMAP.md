@@ -57,7 +57,7 @@ Phase 8  Polish, tests, next steps
 - [x] 0.2 **Upgrade Node.js** to the current LTS (yours is v6, far too old). *Learn: what Node is and why a browser app needs it for tooling.*
 - [x] 0.3 JDK 17 is already installed, and that's all Spring Boot 3 needs. *Learn: JDK vs JRE vs JVM.*
 - [x] 0.4 Install **VS Code** (for React) and **IntelliJ IDEA Community** (for Java).
-- [ ] 0.5 Install **Git** and make your first commit of this folder. *Learn: why version control exists, and what a commit is.*
+- [x] 0.5 Install **Git** and make your first commit of this folder. *Learn: why version control exists, and what a commit is.*
 - [ ] 0.6 Install **Postman** (or use `curl`) for testing the API later.
 
 **Done when:** all three version commands print a version and `git log` shows one commit.
