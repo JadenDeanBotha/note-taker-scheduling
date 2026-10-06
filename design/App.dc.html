@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Today — to-do app</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F3F4F1}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+button,input,textarea{font:inherit}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.task .del{opacity:0}
+.task:hover .del,.task .del:focus-visible{opacity:1}
+.task:hover{background:#F7F8F5}
+.navitem:hover{background:#F3F4F1}
+.ghost:hover{background:#E9EBE6}
+@media (hover:none){.task .del{opacity:1}}
+input:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid #15171C;outline-offset:2px}
+</style>
+</helmet>
+<div style="position: relative; min-height: 100vh; box-sizing: border-box; background: #F3F4F1; color: #15171C; font-family: 'Figtree', system-ui, sans-serif">
+
+<header style="display: flex; align-items: center; gap: 12px; padding: 14px clamp(16px, 4vw, 48px); border-bottom: 1px solid #E3E5E0; background: #FFFFFF">
+<button type="button" class="ghost" onClick="{{openMenu}}" aria-label="Open menu" aria-expanded="{{menuOpen}}" style="width: 44px; height: 44px; padding: 0; border: 0; border-radius: 12px; background: transparent; color: #15171C; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+</button>
+<span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.01em">Today</span>
+<span style="margin-left: auto; font-size: 14px; color: #5B616E">{{crumb}}</span>
+</header>
+
+<div style="padding: clamp(20px, 4vw, 48px) clamp(16px, 4vw, 48px)">
+<div style="max-width: 1200px; margin: 0 auto">
+
+<sc-if value="{{isHome}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 28px">
+
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<p style="margin: 0; font-size: 15px; font-weight: 600; color: #5B616E">{{greeting}}, Jaden</p>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: clamp(36px, 5vw, 56px); line-height: 1; font-weight: 700; letter-spacing: -0.02em">{{today}}</h1>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px; flex: 0 1 340px; min-width: 240px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 15px">
+<span style="font-weight: 600">{{doneCount}} of {{totalCount}} done</span>
+<span style="color: #5B616E">{{pctLabel}}</span>
+</div>
+<div style="height: 10px; border-radius: 999px; background: #E3E5E0; overflow: hidden; display: flex">
+<sc-for list="{{segments}}" as="seg" hint-placeholder-count="3">
+<div style="height: 100%; width: {{seg.width}}; background: {{seg.color}}"></div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<form onSubmit="{{addTaskHome}}" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; background: #FFFFFF; border: 1px solid #E3E5E0; border-radius: 18px; padding: 12px">
+<label for="home-new-task" class="sr-only">New task</label>
+<input id="home-new-task" type="text" placeholder="Add a task…" value="{{draft}}" onChange="{{onDraft}}" style="flex: 1 1 260px; min-width: 0; height: 48px; border: 0; background: transparent; font-size: 17px; padding: 0 10px; color: #15171C">
+<div role="group" aria-label="Category for the new task" style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{draftCats}}" as="c" hint-placeholder-count="3">
+<button type="button" onClick="{{c.pick}}" aria-pressed="{{c.active}}" style="height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px">
+<span style="width: 8px; height: 8px; border-radius: 50%; background: {{c.dot}}"></span>{{c.name}}
+</button>
+</sc-for>
+</div>
+<label for="home-new-time" class="sr-only">Time (optional)</label>
+<input id="home-new-time" type="time" value="{{draftTime}}" onChange="{{onTime}}" style="height: 44px; border: 1px solid #D5D8D1; border-radius: 12px; padding: 0 10px; color: #15171C; background: #FFFFFF">
+<button type="submit" style="height: 48px; padding: 0 22px; border: 0; border-radius: 12px; background: #15171C; color: #FFFFFF; font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+Add
+</button>
+</form>
+
+<div style="display: flex; justify-content: flex-end">
+<label style="display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; font-weight: 500; color: #5B616E; cursor: pointer">
+<input type="checkbox" checked="{{hideDone}}" onChange="{{toggleHide}}" style="width: 18px; height: 18px; margin: 0; accent-color: #15171C">
+Hide completed
+</label>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; align-items: start">
+<sc-for list="{{columns}}" as="col" hint-placeholder-count="3">
+<section aria-label="{{col.name}}" style="background: #FFFFFF; border: 1px solid #E3E5E0; border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+<div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+<span style="width: 12px; height: 12px; border-radius: 4px; background: {{col.color}}; flex: none"></span>
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.01em">{{col.name}}</h2>
+<span style="font-size: 13px; font-weight: 600; color: {{col.color}}; background: {{col.soft}}; padding: 5px 10px; border-radius: 999px; white-space: nowrap">{{col.leftLabel}}</span>
+</div>
+<button type="button" class="ghost" onClick="{{col.open}}" aria-label="{{col.openLabel}}" style="flex: none; height: 44px; padding: 0 10px 0 12px; border: 0; border-radius: 12px; background: transparent; color: #15171C; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px">
+Open
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+</button>
+</div>
+<div style="height: 4px; border-radius: 999px; background: #EEF0EC; overflow: hidden">
+<div style="height: 100%; width: {{col.pct}}; background: {{col.color}}"></div>
+</div>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{col.tasks}}" as="t" hint-placeholder-count="3">
+<li class="task" style="display: flex; align-items: center; gap: 8px; padding: 2px 4px 2px 0; border-radius: 12px">
+<button type="button" onClick="{{t.toggle}}" aria-label="{{t.checkLabel}}" aria-pressed="{{t.done}}" style="flex: none; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<span style="width: 24px; height: 24px; box-sizing: border-box; border-radius: 8px; border: 2px solid {{t.ring}}; background: {{t.fill}}; display: flex; align-items: center; justify-content: center">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{t.tick}}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+</span>
+</button>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 8px 0">
+<span style="font-size: 16px; font-weight: 500; line-height: 1.3; color: {{t.ink}}; text-decoration: {{t.deco}}; overflow-wrap: anywhere">{{t.title}}</span>
+<sc-if value="{{t.hasTime}}" hint-placeholder-val="{{true}}">
+<span style="font-size: 13px; color: #5B616E; display: flex; align-items: center; gap: 5px">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+{{t.time}}
+</span>
+</sc-if>
+</div>
+<button type="button" class="del" onClick="{{t.remove}}" aria-label="{{t.removeLabel}}" style="flex: none; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #5B616E; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"></path></svg>
+</button>
+</li>
+</sc-for>
+</ul>
+<sc-if value="{{col.empty}}" hint-placeholder-val="{{false}}">
+<p style="margin: 0; padding: 10px 4px 4px; font-size: 14px; color: #5B616E">{{col.emptyText}}</p>
+</sc-if>
+</section>
+</sc-for>
+</div>
+
+</div>
+</sc-if>
+
+<sc-if value="{{isCat}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div>
+<button type="button" class="ghost" onClick="{{goHome}}" style="height: 44px; padding: 0 14px 0 8px; border: 0; border-radius: 12px; background: transparent; color: #15171C; font-size: 15px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+Home
+</button>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<main style="flex: 999 1 540px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E5E0; border-radius: 28px; padding: clamp(20px, 3vw, 40px); display: flex; flex-direction: column; gap: 24px; box-sizing: border-box">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 14px">
+<span style="width: 18px; height: 18px; border-radius: 6px; background: {{cur.color}}; flex: none"></span>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: clamp(36px, 5vw, 52px); line-height: 1; font-weight: 700; letter-spacing: -0.02em">{{cur.name}}</h1>
+</div>
+<p style="margin: 0; font-size: 16px; color: #5B616E">{{cur.summary}}</p>
+<div style="height: 6px; border-radius: 999px; background: #EEF0EC; overflow: hidden">
+<div style="height: 100%; width: {{cur.pct}}; background: {{cur.color}}"></div>
+</div>
+</div>
+
+<form onSubmit="{{addTaskCat}}" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 8px; border-radius: 16px; background: #F3F4F1">
+<label for="cat-new-task" class="sr-only">New task</label>
+<input id="cat-new-task" type="text" placeholder="{{cur.placeholder}}" value="{{draft}}" onChange="{{onDraft}}" style="flex: 1 1 240px; min-width: 0; height: 48px; border: 0; border-radius: 12px; background: #FFFFFF; font-size: 17px; padding: 0 14px; color: #15171C">
+<label for="cat-new-time" class="sr-only">Time (optional)</label>
+<input id="cat-new-time" type="time" value="{{draftTime}}" onChange="{{onTime}}" style="height: 48px; border: 0; border-radius: 12px; padding: 0 12px; color: #15171C; background: #FFFFFF">
+<button type="submit" style="height: 48px; padding: 0 22px; border: 0; border-radius: 12px; background: {{cur.color}}; color: #FFFFFF; font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+Add
+</button>
+</form>
+
+<section aria-labelledby="sched-h" style="display: flex; flex-direction: column; gap: 6px">
+<h2 id="sched-h" style="margin: 0 0 4px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #5B616E">Schedule</h2>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{open}}" as="t" hint-placeholder-count="3">
+<li class="task" style="display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 0; border-radius: 14px">
+<span style="flex: none; width: 56px; font-size: 14px; font-weight: 600; color: {{t.timeFg}}; text-align: right; font-variant-numeric: tabular-nums">{{t.timeLabel}}</span>
+<button type="button" onClick="{{t.toggle}}" aria-label="{{t.checkLabel}}" aria-pressed="{{t.done}}" style="flex: none; width: 48px; height: 48px; padding: 0; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<span style="width: 26px; height: 26px; box-sizing: border-box; border-radius: 9px; border: 2px solid {{t.ring}}; background: {{t.fill}}; display: flex; align-items: center; justify-content: center">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{t.tick}}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+</span>
+</button>
+<span style="flex: 1; min-width: 0; font-size: 18px; font-weight: 500; line-height: 1.3; color: {{t.ink}}; overflow-wrap: anywhere; padding: 10px 0">{{t.title}}</span>
+<button type="button" class="del" onClick="{{t.remove}}" aria-label="{{t.removeLabel}}" style="flex: none; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #5B616E; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"></path></svg>
+</button>
+</li>
+</sc-for>
+</ul>
+<sc-if value="{{noOpen}}" hint-placeholder-val="{{false}}">
+<p style="margin: 0; padding: 14px 0; font-size: 16px; color: #5B616E">{{emptyText}}</p>
+</sc-if>
+</section>
+
+<sc-if value="{{hasDone}}" hint-placeholder-val="{{true}}">
+<section style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #E3E5E0; padding-top: 16px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<button type="button" onClick="{{toggleShowDone}}" aria-expanded="{{showDone}}" style="min-height: 44px; padding: 0 8px 0 0; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #5B616E">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform: rotate({{chevron}}); transition: transform 150ms"><path d="M9 6l6 6-6 6"></path></svg>
+Completed ({{doneN}})
+</button>
+<button type="button" onClick="{{clearDone}}" style="min-height: 44px; padding: 0 14px; border: 1px solid #D5D8D1; border-radius: 10px; background: #FFFFFF; color: #15171C; font-size: 14px; font-weight: 600; cursor: pointer">Clear completed</button>
+</div>
+<sc-if value="{{showDone}}" hint-placeholder-val="{{true}}">
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{doneList}}" as="t" hint-placeholder-count="2">
+<li class="task" style="display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 0; border-radius: 14px">
+<span style="flex: none; width: 56px; font-size: 14px; font-weight: 600; color: #6B7280; text-align: right; font-variant-numeric: tabular-nums">{{t.timeLabel}}</span>
+<button type="button" onClick="{{t.toggle}}" aria-label="{{t.checkLabel}}" aria-pressed="{{t.done}}" style="flex: none; width: 48px; height: 48px; padding: 0; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<span style="width: 26px; height: 26px; box-sizing: border-box; border-radius: 9px; border: 2px solid {{t.ring}}; background: {{t.fill}}; display: flex; align-items: center; justify-content: center">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{t.tick}}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+</span>
+</button>
+<span style="flex: 1; min-width: 0; font-size: 18px; font-weight: 500; line-height: 1.3; color: {{t.ink}}; text-decoration: {{t.deco}}; overflow-wrap: anywhere; padding: 10px 0">{{t.title}}</span>
+<button type="button" class="del" onClick="{{t.remove}}" aria-label="{{t.removeLabel}}" style="flex: none; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #5B616E; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"></path></svg>
+</button>
+</li>
+</sc-for>
+</ul>
+</sc-if>
+</section>
+</sc-if>
+</main>
+
+<aside aria-labelledby="notes-h" style="flex: 1 1 280px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E5E0; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box">
+<div style="display: flex; align-items: center; gap: 10px">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{cur.color}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"></path><path d="M14 3v5h5M9 13h7M9 17h5"></path></svg>
+<h2 id="notes-h" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 700">Notes</h2>
+</div>
+<label for="cat-notes" class="sr-only">{{cur.notesLabel}}</label>
+<textarea id="cat-notes" value="{{cur.notes}}" onChange="{{onNotes}}" placeholder="{{cur.notesPlaceholder}}" rows="12" style="width: 100%; box-sizing: border-box; min-height: 280px; resize: vertical; border: 1px solid #E3E5E0; border-radius: 14px; background: #F7F8F5; padding: 14px; font-size: 15px; line-height: 1.55; color: #15171C"></textarea>
+</aside>
+</div>
+</div>
+</sc-if>
+
+</div>
+</div>
+
+<sc-if value="{{menuOpen}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; inset: 0; z-index: 20">
+<button type="button" onClick="{{closeMenu}}" aria-label="Close menu" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: rgba(21, 23, 28, 0.35); cursor: pointer"></button>
+<nav aria-label="Main menu" style="position: absolute; top: 0; left: 0; bottom: 0; width: min(320px, 86%); background: #FFFFFF; box-shadow: 0 20px 60px rgba(21, 23, 28, 0.18); padding: 14px 16px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; overflow-y: auto">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-left: 8px">
+<span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 700">Today</span>
+<button type="button" class="ghost" onClick="{{closeMenu}}" aria-label="Close menu" style="width: 44px; height: 44px; padding: 0; border: 0; border-radius: 12px; background: transparent; color: #15171C; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+</button>
+</div>
+<button type="button" class="navitem" onClick="{{goHome}}" aria-current="{{homeCurrent}}" style="margin-top: 8px; min-height: 52px; padding: 0 14px; border: 1px solid {{homeBorder}}; border-radius: 14px; background: {{homeBg}}; color: #15171C; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 12px; text-align: left">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"></path></svg>
+<span style="flex: 1">Home</span>
+<span style="font-size: 13px; font-weight: 600; background: #E3E5E0; min-width: 26px; padding: 3px 8px; border-radius: 999px; text-align: center; box-sizing: border-box">{{leftTotal}}</span>
+</button>
+<p style="margin: 16px 0 4px 14px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #5B616E">Lists</p>
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="3">
+<button type="button" class="navitem" onClick="{{n.pick}}" aria-current="{{n.current}}" style="min-height: 52px; padding: 0 14px; border: 1px solid {{n.border}}; border-radius: 14px; background: {{n.bg}}; color: #15171C; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 12px; text-align: left">
+<span style="width: 12px; height: 12px; border-radius: 4px; background: {{n.color}}; flex: none; margin: 0 3px"></span>
+<span style="flex: 1">{{n.name}}</span>
+<span style="font-size: 13px; font-weight: 600; color: {{n.badgeFg}}; background: {{n.badgeBg}}; min-width: 26px; padding: 3px 8px; border-radius: 999px; text-align: center; box-sizing: border-box">{{n.left}}</span>
+</button>
+</sc-for>
+</nav>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.nextId = 100;
+    this.state = {
+      tasks: [
+        { id: 1, cat: 'personal', title: 'Morning run', time: '06:30', done: true },
+        { id: 2, cat: 'personal', title: 'Buy groceries for the week', time: '17:30', done: false },
+        { id: 3, cat: 'personal', title: 'Call Mom', time: '19:00', done: false },
+        { id: 4, cat: 'personal', title: 'Pay the electricity bill', time: '', done: false },
+        { id: 5, cat: 'work', title: 'Reply to client emails', time: '08:30', done: true },
+        { id: 6, cat: 'work', title: 'Team stand-up', time: '09:30', done: true },
+        { id: 7, cat: 'work', title: 'Finish the project update slides', time: '14:00', done: false },
+        { id: 8, cat: 'work', title: 'Book flights for next week', time: '', done: false },
+        { id: 9, cat: 'school', title: 'Read chapter 5 before class', time: '11:00', done: false },
+        { id: 10, cat: 'school', title: 'Study group', time: '16:00', done: false },
+        { id: 11, cat: 'school', title: 'Submit assignment 2', time: '23:00', done: false }
+      ],
+      notes: { personal: '', work: '', school: '' },
+      view: 'home',
+      menuOpen: false,
+      draft: '',
+      draftCat: 'work',
+      draftTime: '',
+      hideDone: false,
+      showDone: true
+    };
+  }
+
+  cats() {
+    return [
+      { id: 'personal', name: 'Personal', color: '#C2410C', soft: '#FFF1E7', placeholder: 'Add something personal…' },
+      { id: 'work', name: 'Work', color: '#1D4ED8', soft: '#EAF0FF', placeholder: 'Add a work task…' },
+      { id: 'school', name: 'School', color: '#15803D', soft: '#E8F6EC', placeholder: 'Add a school task…' }
+    ];
+  }
+
+  go(view) {
+    this.setState({ view: view, menuOpen: false, draft: '', draftTime: '', draftCat: view === 'home' ? this.state.draftCat : view });
+  }
+
+  add(e, cat) {
+    e.preventDefault();
+    const title = this.state.draft.trim();
+    if (!title) return;
+    const id = this.nextId++;
+    this.setState((st) => ({
+      tasks: st.tasks.concat([{ id: id, cat: cat || st.draftCat, title: title, time: st.draftTime, done: false }]),
+      draft: '',
+      draftTime: ''
+    }));
+  }
+
+  renderVals() {
+    const s = this.state;
+    const cats = this.cats();
+    const tasks = s.tasks;
+    const total = tasks.length;
+    const done = tasks.filter((t) => t.done).length;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    const isHome = s.view === 'home';
+    const c = cats.find((x) => x.id === s.view) || cats[0];
+    const off = { bg: '#FFFFFF', fg: '#15171C', border: '#D5D8D1' };
+
+    const byTime = (a, b) => (a.time || '99:99').localeCompare(b.time || '99:99');
+    const byDoneTime = (a, b) => (a.done - b.done) || byTime(a, b);
+
+    const mkTask = (t, cc) => ({
+      id: t.id,
+      title: t.title,
+      time: t.time,
+      timeLabel: t.time || 'Any time',
+      hasTime: !!t.time,
+      done: t.done,
+      checkLabel: (t.done ? 'Mark as not done: ' : 'Mark as done: ') + t.title,
+      removeLabel: 'Delete task: ' + t.title,
+      ring: t.done ? cc.color : '#B3B8B0',
+      fill: t.done ? cc.color : '#FFFFFF',
+      tick: t.done ? '#FFFFFF' : 'transparent',
+      ink: t.done ? '#6B7280' : '#15171C',
+      deco: t.done ? 'line-through' : 'none',
+      timeFg: t.time ? cc.color : '#5B616E',
+      toggle: () => this.setState((st) => ({ tasks: st.tasks.map((x) => (x.id === t.id ? Object.assign({}, x, { done: !x.done }) : x)) })),
+      remove: () => this.setState((st) => ({ tasks: st.tasks.filter((x) => x.id !== t.id) }))
+    });
+
+    const segments = cats.map((n) => {
+      const k = tasks.filter((t) => t.cat === n.id && t.done).length;
+      return { color: n.color, width: total ? (k / total) * 100 + '%' : '0%' };
+    });
+
+    const columns = cats.map((cc) => {
+      const list = tasks.filter((t) => t.cat === cc.id).slice().sort(byDoneTime);
+      const shown = s.hideDone ? list.filter((t) => !t.done) : list;
+      const doneN = list.filter((t) => t.done).length;
+      const left = list.length - doneN;
+      return {
+        name: cc.name,
+        color: cc.color,
+        soft: cc.soft,
+        leftLabel: left === 0 && list.length ? 'All done' : left + ' left',
+        pct: list.length ? Math.round((doneN / list.length) * 100) + '%' : '0%',
+        tasks: shown.map((t) => mkTask(t, cc)),
+        empty: shown.length === 0,
+        emptyText: list.length === 0 ? 'Nothing here yet. Add a task above.' : 'All done here. Nice work.',
+        open: () => this.go(cc.id),
+        openLabel: 'Open the ' + cc.name + ' list'
+      };
+    });
+
+    const draftCats = cats.map((cc) => {
+      const active = s.draftCat === cc.id;
+      return {
+        name: cc.name,
+        active: active,
+        dot: cc.color,
+        bg: active ? cc.soft : off.bg,
+        fg: active ? cc.color : off.fg,
+        border: active ? cc.color : off.border,
+        pick: () => this.setState({ draftCat: cc.id })
+      };
+    });
+
+    const nav = cats.map((n) => {
+      const isCur = s.view === n.id;
+      return {
+        name: n.name,
+        color: n.color,
+        left: tasks.filter((t) => t.cat === n.id && !t.done).length,
+        current: isCur ? 'page' : 'false',
+        bg: isCur ? n.soft : '#FFFFFF',
+        border: isCur ? n.color : 'transparent',
+        badgeBg: isCur ? n.color : '#E3E5E0',
+        badgeFg: isCur ? '#FFFFFF' : '#15171C',
+        pick: () => this.go(n.id)
+      };
+    });
+
+    const list = tasks.filter((t) => t.cat === c.id);
+    const openT = list.filter((t) => !t.done).sort(byTime);
+    const doneT = list.filter((t) => t.done).sort(byTime);
+    const summary = list.length === 0
+      ? 'No tasks yet.'
+      : openT.length === 0
+        ? 'Everything here is done.'
+        : openT.length + ' to do · ' + doneT.length + ' done';
+
+    return {
+      isHome: isHome,
+      isCat: !isHome,
+      crumb: isHome ? 'Home' : c.name,
+      menuOpen: s.menuOpen,
+      openMenu: () => this.setState({ menuOpen: true }),
+      closeMenu: () => this.setState({ menuOpen: false }),
+      goHome: () => this.go('home'),
+      homeCurrent: isHome ? 'page' : 'false',
+      homeBg: isHome ? '#F3F4F1' : '#FFFFFF',
+      homeBorder: isHome ? '#15171C' : 'transparent',
+      leftTotal: total - done,
+      nav: nav,
+
+      greeting: greeting,
+      today: today,
+      doneCount: done,
+      totalCount: total,
+      pctLabel: pct + '%',
+      segments: segments,
+      columns: columns,
+      draftCats: draftCats,
+      hideDone: s.hideDone,
+      toggleHide: () => this.setState((st) => ({ hideDone: !st.hideDone })),
+
+      draft: s.draft,
+      draftTime: s.draftTime,
+      onDraft: (e) => this.setState({ draft: e.target.value }),
+      onTime: (e) => this.setState({ draftTime: e.target.value }),
+      addTaskHome: (e) => this.add(e, null),
+      addTaskCat: (e) => this.add(e, c.id),
+
+      cur: {
+        name: c.name,
+        color: c.color,
+        placeholder: c.placeholder,
+        summary: summary,
+        pct: list.length ? Math.round((doneT.length / list.length) * 100) + '%' : '0%',
+        notes: s.notes[c.id] || '',
+        notesLabel: c.name + ' notes',
+        notesPlaceholder: 'Anything to remember for ' + c.name.toLowerCase() + '…'
+      },
+      onNotes: (e) => {
+        const v = e.target.value;
+        this.setState((st) => ({ notes: Object.assign({}, st.notes, { [c.id]: v }) }));
+      },
+      open: openT.map((t) => mkTask(t, c)),
+      doneList: doneT.map((t) => mkTask(t, c)),
+      doneN: doneT.length,
+      noOpen: openT.length === 0,
+      hasDone: doneT.length > 0,
+      emptyText: list.length === 0 ? 'Nothing on this list yet. Add your first task above.' : 'All clear. Enjoy the free time.',
+      showDone: s.showDone,
+      chevron: s.showDone ? '90deg' : '0deg',
+      toggleShowDone: () => this.setState((st) => ({ showDone: !st.showDone })),
+      clearDone: () => this.setState((st) => ({ tasks: st.tasks.filter((t) => !(t.cat === c.id && t.done)) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

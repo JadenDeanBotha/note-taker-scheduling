@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Today — all lists</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F3F4F1}
+a{color:#1D4ED8}a:hover{color:#1E3A8A}
+button,input{font:inherit}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.task .del{opacity:0}
+.task:hover .del,.task .del:focus-visible{opacity:1}
+.task:hover{background:#F7F8F5}
+@media (hover:none){.task .del{opacity:1}}
+input:focus-visible,button:focus-visible{outline:2px solid #15171C;outline-offset:2px}
+</style>
+</helmet>
+<div style="min-height: 100vh; box-sizing: border-box; background: #F3F4F1; color: #15171C; font-family: 'Figtree', system-ui, sans-serif; padding: clamp(20px, 4vw, 56px) clamp(16px, 4vw, 48px)">
+<div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px">
+
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<p style="margin: 0; font-size: 15px; font-weight: 600; color: #5B616E">{{greeting}}, Jaden</p>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: clamp(36px, 5vw, 56px); line-height: 1; font-weight: 700; letter-spacing: -0.02em">{{today}}</h1>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px; flex: 0 1 340px; min-width: 240px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 15px">
+<span style="font-weight: 600">{{doneCount}} of {{totalCount}} done</span>
+<span style="color: #5B616E">{{pctLabel}}</span>
+</div>
+<div style="height: 10px; border-radius: 999px; background: #E3E5E0; overflow: hidden; display: flex">
+<sc-for list="{{segments}}" as="seg" hint-placeholder-count="3">
+<div style="height: 100%; width: {{seg.width}}; background: {{seg.color}}"></div>
+</sc-for>
+</div>
+</div>
+</header>
+
+<form onSubmit="{{addTask}}" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; background: #FFFFFF; border: 1px solid #E3E5E0; border-radius: 18px; padding: 12px">
+<label for="new-task" class="sr-only">New task</label>
+<input id="new-task" type="text" placeholder="Add a task…" value="{{draft}}" onChange="{{onDraft}}" style="flex: 1 1 260px; min-width: 0; height: 48px; border: 0; background: transparent; font-size: 17px; padding: 0 10px; color: #15171C">
+<div role="group" aria-label="Category for the new task" style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{draftCats}}" as="c" hint-placeholder-count="3">
+<button type="button" onClick="{{c.pick}}" aria-pressed="{{c.active}}" style="height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px">
+<span style="width: 8px; height: 8px; border-radius: 50%; background: {{c.dot}}"></span>{{c.name}}
+</button>
+</sc-for>
+</div>
+<label for="new-time" class="sr-only">Time (optional)</label>
+<input id="new-time" type="time" value="{{draftTime}}" onChange="{{onTime}}" style="height: 44px; border: 1px solid #D5D8D1; border-radius: 12px; padding: 0 10px; color: #15171C; background: #FFFFFF">
+<button type="submit" style="height: 48px; padding: 0 22px; border: 0; border-radius: 12px; background: #15171C; color: #FFFFFF; font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+Add
+</button>
+</form>
+
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+<div role="group" aria-label="Show tasks for" style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+<button type="button" onClick="{{f.pick}}" aria-pressed="{{f.active}}" style="height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid {{f.border}}; background: {{f.bg}}; color: {{f.fg}}; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px">
+{{f.label}}<span style="font-weight: 500; opacity: 0.75">{{f.count}}</span>
+</button>
+</sc-for>
+</div>
+<label style="display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; font-weight: 500; color: #5B616E; cursor: pointer">
+<input type="checkbox" checked="{{hideDone}}" onChange="{{toggleHide}}" style="width: 18px; height: 18px; margin: 0; accent-color: #15171C">
+Hide completed
+</label>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; align-items: start">
+<sc-for list="{{columns}}" as="col" hint-placeholder-count="3">
+<section aria-label="{{col.name}}" style="background: #FFFFFF; border: 1px solid #E3E5E0; border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="width: 12px; height: 12px; border-radius: 4px; background: {{col.color}}"></span>
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.01em">{{col.name}}</h2>
+</div>
+<span style="font-size: 13px; font-weight: 600; color: {{col.color}}; background: {{col.soft}}; padding: 5px 10px; border-radius: 999px">{{col.leftLabel}}</span>
+</div>
+<div style="height: 4px; border-radius: 999px; background: #EEF0EC; overflow: hidden">
+<div style="height: 100%; width: {{col.pct}}; background: {{col.color}}"></div>
+</div>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{col.tasks}}" as="t" hint-placeholder-count="3">
+<li class="task" style="display: flex; align-items: center; gap: 8px; padding: 2px 4px 2px 0; border-radius: 12px">
+<button type="button" onClick="{{t.toggle}}" aria-label="{{t.checkLabel}}" aria-pressed="{{t.done}}" style="flex: none; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<span style="width: 24px; height: 24px; box-sizing: border-box; border-radius: 8px; border: 2px solid {{t.ring}}; background: {{t.fill}}; display: flex; align-items: center; justify-content: center">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{t.tick}}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+</span>
+</button>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 8px 0">
+<span style="font-size: 16px; font-weight: 500; line-height: 1.3; color: {{t.ink}}; text-decoration: {{t.deco}}; overflow-wrap: anywhere">{{t.title}}</span>
+<sc-if value="{{t.hasTime}}" hint-placeholder-val="{{true}}">
+<span style="font-size: 13px; color: #5B616E; display: flex; align-items: center; gap: 5px">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+{{t.time}}
+</span>
+</sc-if>
+</div>
+<button type="button" class="del" onClick="{{t.remove}}" aria-label="{{t.removeLabel}}" style="flex: none; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #5B616E; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"></path></svg>
+</button>
+</li>
+</sc-for>
+</ul>
+<sc-if value="{{col.empty}}" hint-placeholder-val="{{false}}">
+<p style="margin: 0; padding: 10px 4px 4px; font-size: 14px; color: #5B616E">{{col.emptyText}}</p>
+</sc-if>
+</section>
+</sc-for>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.nextId = 100;
+    this.state = {
+      tasks: [
+        { id: 1, cat: 'personal', title: 'Morning run', time: '06:30', done: true },
+        { id: 2, cat: 'personal', title: 'Buy groceries for the week', time: '17:30', done: false },
+        { id: 3, cat: 'personal', title: 'Call Mom', time: '19:00', done: false },
+        { id: 4, cat: 'personal', title: 'Pay the electricity bill', time: '', done: false },
+        { id: 5, cat: 'work', title: 'Reply to client emails', time: '08:30', done: true },
+        { id: 6, cat: 'work', title: 'Team stand-up', time: '09:30', done: true },
+        { id: 7, cat: 'work', title: 'Finish the project update slides', time: '14:00', done: false },
+        { id: 8, cat: 'work', title: 'Book flights for next week', time: '', done: false },
+        { id: 9, cat: 'school', title: 'Read chapter 5 before class', time: '11:00', done: false },
+        { id: 10, cat: 'school', title: 'Study group', time: '16:00', done: false },
+        { id: 11, cat: 'school', title: 'Submit assignment 2', time: '23:00', done: false }
+      ],
+      filter: 'all',
+      draft: '',
+      draftCat: 'work',
+      draftTime: '',
+      hideDone: false
+    };
+  }
+
+  cats() {
+    return [
+      { id: 'personal', name: 'Personal', color: '#C2410C', soft: '#FFF1E7' },
+      { id: 'work', name: 'Work', color: '#1D4ED8', soft: '#EAF0FF' },
+      { id: 'school', name: 'School', color: '#15803D', soft: '#E8F6EC' }
+    ];
+  }
+
+  renderVals() {
+    const s = this.state;
+    const cats = this.cats();
+    const tasks = s.tasks;
+    const total = tasks.length;
+    const done = tasks.filter((t) => t.done).length;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    const segments = cats.map((c) => {
+      const n = tasks.filter((t) => t.cat === c.id && t.done).length;
+      return { color: c.color, width: total ? (n / total) * 100 + '%' : '0%' };
+    });
+
+    const byTime = (a, b) => (a.done - b.done) || (a.time || '99:99').localeCompare(b.time || '99:99');
+
+    const mkTask = (t, c) => ({
+      id: t.id,
+      title: t.title,
+      time: t.time,
+      hasTime: !!t.time,
+      done: t.done,
+      checkLabel: (t.done ? 'Mark as not done: ' : 'Mark as done: ') + t.title,
+      removeLabel: 'Delete task: ' + t.title,
+      ring: t.done ? c.color : '#B3B8B0',
+      fill: t.done ? c.color : '#FFFFFF',
+      tick: t.done ? '#FFFFFF' : 'transparent',
+      ink: t.done ? '#6B7280' : '#15171C',
+      deco: t.done ? 'line-through' : 'none',
+      toggle: () => this.setState((st) => ({ tasks: st.tasks.map((x) => (x.id === t.id ? Object.assign({}, x, { done: !x.done }) : x)) })),
+      remove: () => this.setState((st) => ({ tasks: st.tasks.filter((x) => x.id !== t.id) }))
+    });
+
+    const visible = s.filter === 'all' ? cats : cats.filter((c) => c.id === s.filter);
+    const columns = visible.map((c) => {
+      const list = tasks.filter((t) => t.cat === c.id).slice().sort(byTime);
+      const shown = s.hideDone ? list.filter((t) => !t.done) : list;
+      const doneN = list.filter((t) => t.done).length;
+      const left = list.length - doneN;
+      return {
+        id: c.id,
+        name: c.name,
+        color: c.color,
+        soft: c.soft,
+        leftLabel: left === 0 && list.length ? 'All done' : left + ' left',
+        pct: list.length ? Math.round((doneN / list.length) * 100) + '%' : '0%',
+        tasks: shown.map((t) => mkTask(t, c)),
+        empty: shown.length === 0,
+        emptyText: list.length === 0 ? 'Nothing here yet. Add a task above.' : 'All done here. Nice work.'
+      };
+    });
+
+    const off = { bg: '#FFFFFF', fg: '#15171C', border: '#D5D8D1' };
+    const filters = [{ id: 'all', name: 'All' }].concat(cats).map((c) => {
+      const active = s.filter === c.id;
+      const count = tasks.filter((t) => !t.done && (c.id === 'all' || t.cat === c.id)).length;
+      return {
+        label: c.name,
+        count: count,
+        active: active,
+        bg: active ? '#15171C' : off.bg,
+        fg: active ? '#FFFFFF' : off.fg,
+        border: active ? '#15171C' : off.border,
+        pick: () => this.setState(c.id === 'all' ? { filter: 'all' } : { filter: c.id, draftCat: c.id })
+      };
+    });
+
+    const draftCats = cats.map((c) => {
+      const active = s.draftCat === c.id;
+      return {
+        name: c.name,
+        active: active,
+        dot: c.color,
+        bg: active ? c.soft : off.bg,
+        fg: active ? c.color : off.fg,
+        border: active ? c.color : off.border,
+        pick: () => this.setState({ draftCat: c.id })
+      };
+    });
+
+    return {
+      greeting: greeting,
+      today: today,
+      doneCount: done,
+      totalCount: total,
+      pctLabel: pct + '%',
+      segments: segments,
+      columns: columns,
+      filters: filters,
+      draftCats: draftCats,
+      draft: s.draft,
+      draftTime: s.draftTime,
+      hideDone: s.hideDone,
+      onDraft: (e) => this.setState({ draft: e.target.value }),
+      onTime: (e) => this.setState({ draftTime: e.target.value }),
+      toggleHide: () => this.setState((st) => ({ hideDone: !st.hideDone })),
+      addTask: (e) => {
+        e.preventDefault();
+        const title = this.state.draft.trim();
+        if (!title) return;
+        const id = this.nextId++;
+        this.setState((st) => ({
+          tasks: st.tasks.concat([{ id: id, cat: st.draftCat, title: title, time: st.draftTime, done: false }]),
+          draft: '',
+          draftTime: ''
+        }));
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
