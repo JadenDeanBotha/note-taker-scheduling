@@ -1,0 +1,24 @@
+:root {
+  --bg: #f3f4f1;
+  --surface: #ffffff;
+  --ink: #15171c;
+  --ink-soft: #5b616e;
+  --border: #e3e5e0;
+
+  --personal: #c2410c;
+  --personal-soft: #fff1e7;
+  --work: #1d4ed8;
+  --work-soft: #eaf0ff;
+  --school: #15803d;
+  --school-soft: #e8f6ec;
+
+  --font-body: 'Figtree', system-ui, sans-serif;
+  --font-heading: 'Bricolage Grotesque', sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
