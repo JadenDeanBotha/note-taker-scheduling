@@ -13,8 +13,10 @@ function App() {
         <div className="page__inner">
           <Greeting name="Jaden" />
           <ul style={{ margin: 0, padding: 0 }}>
-            <TaskItem task={initialTasks[0]} color={categories[0].color} />
-            <TaskItem task={initialTasks[1]} color={categories[0].color} />
+            {initialTasks.map((task) => {
+              const color = categories.find((c) => c.id === task.category)?.color ?? '#999999'
+              return <TaskItem key={task.id} task={task} color={color}/>
+            })}
           </ul>
         </div>
       </div>
