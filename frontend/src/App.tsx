@@ -12,9 +12,17 @@ function App() {
       <div className="page">
         <div className="page__inner">
           <Greeting name="Jaden" />
-          {categories.map((category) => (
-            <CategoryColumn key={category.id} category={category} tasks={initialTasks.filter((task) => task.category === category.id)}  />
-          ))}
+          <div className="columns">
+            {categories.map((category) => (
+              <CategoryColumn
+                key={category.id}
+                category={category}
+                tasks={initialTasks.filter(
+                  (task) => task.category === category.id,
+                )}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
