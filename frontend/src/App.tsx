@@ -1,7 +1,7 @@
 import "./App.css";
 import Header from "./components/Header";
 import Greeting from "./components/Greeting";
-import TaskItem from "./components/TaskItem";
+import CategoryColumn from "./components/CategoryColumn";
 import { categories, initialTasks } from "./data";
 
 // Define the compenent
@@ -12,12 +12,9 @@ function App() {
       <div className="page">
         <div className="page__inner">
           <Greeting name="Jaden" />
-          <ul style={{ margin: 0, padding: 0 }}>
-            {initialTasks.map((task) => {
-              const color = categories.find((c) => c.id === task.category)?.color ?? '#999999'
-              return <TaskItem key={task.id} task={task} color={color}/>
-            })}
-          </ul>
+          {categories.map((category) => (
+            <CategoryColumn key={category.id} category={category} tasks={initialTasks.filter((task) => task.category === category.id)}  />
+          ))}
         </div>
       </div>
     </div>
