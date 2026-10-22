@@ -1,0 +1,34 @@
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 0 1 340px;
+  min-width: 240px;
+}
+
+.progress__text {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 15px;
+}
+
+.progress__count {
+  font-weight: 600;
+}
+
+.progress__percent {
+  color: var(--ink-soft);
+}
+
+.progress__bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(-border);
+  overflow: hidden;
+  display: flex;
+}
+
+.progress__segment {
+  height: 100%;
+}
