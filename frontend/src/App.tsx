@@ -3,6 +3,7 @@ import Header from "./components/Header";
 import Greeting from "./components/Greeting";
 import CategoryColumn from "./components/CategoryColumn";
 import ProgressSummary from "./components/ProgressSummary";
+import AddTaskForm from "./components/AddTaskForm";
 import { categories, initialTasks } from "./data";
 
 // Define the compenent
@@ -16,6 +17,7 @@ function App() {
             <Greeting name="Jaden" />
             <ProgressSummary tasks={initialTasks} categories={categories} />
           </div>
+          <AddTaskForm categories={categories} selectedId="work"/>
           <div className="columns">
             {categories.map((category) => (
               <CategoryColumn
